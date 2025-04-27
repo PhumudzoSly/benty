@@ -5,23 +5,28 @@ import { BentoGridProvider } from "./bento-grid/bento-grid-context";
 import { useState } from "react";
 import { BentoGridControls } from "./bento-grid/bento-grid-controls";
 import { FullscreenPreview } from "./bento-grid/fullscreen-preview";
+import { ScreenSizeProvider } from "@/hooks/use-screen-size";
+import { GridDebug } from "./bento-grid/grid-debug";
 
 export default function BentoGridGenerator() {
   return (
-    <BentoGridProvider>
-      <div id="generator" className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <BentoGridPreview className="mb-8 bg-transparent" />
-            <CodeOutputToggle />
+    <ScreenSizeProvider>
+      <BentoGridProvider>
+        <GridDebug />
+        <div id="generator" className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <BentoGridPreview className="mb-8 bg-transparent" />
+              <CodeOutputToggle />
+            </div>
+            <div>
+              <BentoGridControls />
+            </div>
           </div>
-          <div>
-            <BentoGridControls />
-          </div>
+          <FullscreenPreview />
         </div>
-        <FullscreenPreview />
-      </div>
-    </BentoGridProvider>
+      </BentoGridProvider>
+    </ScreenSizeProvider>
   );
 }
 

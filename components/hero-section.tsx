@@ -1,6 +1,7 @@
-import { Github, Twitter } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Github, Twitter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Badge } from "./ui/badge";
 
 export function HeroSection() {
   return (
@@ -29,30 +30,35 @@ export function HeroSection() {
               </div>
             </div>
           </div>
+          <Badge variant="outline">Beta</Badge>
           <h1 className="text-5xl font-bold tracking-tight">Benty</h1>
           <p className="text-xl text-muted-foreground max-w-2xl">
-            Create beautiful bento grid layouts with customizable styles and components. Perfect for dashboards and
-            marketing pages.
+            Create beautiful responsive bento grid layouts with customizable
+            styles and components. Perfect for dashboards and marketing pages.
           </p>
           <div className="flex gap-4">
             <Button size="lg" asChild>
               <a href="#generator">Get Started</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="https://github.com/PhumudzoSly" target="_blank">
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
+              <Link href="https://x.com/amazing_sly" target="_blank">
+                <Twitter className="h-4 w-4" />
+                @amazing_sly
               </Link>
             </Button>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Twitter className="h-4 w-4" />
-            <Link href="https://x.com/amazing_sly" target="_blank" className="hover:text-primary">
-              @amazing_sly
+            <Github className="mr-2 h-4 w-4" />
+            <Link
+              href="https://github.com/PhumudzoSly"
+              target="_blank"
+              className="hover:text-primary"
+            >
+              Github
             </Link>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

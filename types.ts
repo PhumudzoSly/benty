@@ -84,20 +84,32 @@ export type CardContent = {
   icon?: string;
 };
 
+export type ResponsiveSpan = {
+  sm: number;
+  md: number;
+  lg: number;
+};
+
 export type BentoCard = {
   id: number;
   name: string;
-  colSpan: number;
-  rowSpan: number;
+  colSpan: ResponsiveSpan;
+  rowSpan: ResponsiveSpan;
   style: CardStyle;
   content: CardContent;
   order: number;
 };
 
+export type ResponsiveConfig = {
+  sm: number;
+  md: number;
+  lg: number;
+};
+
 export type GridConfig = {
-  columns: number;
+  columns: ResponsiveConfig;
   rows: number;
-  gap: number;
+  gap: ResponsiveConfig;
   cards: BentoCard[];
   useRechartsForExport: boolean;
 };

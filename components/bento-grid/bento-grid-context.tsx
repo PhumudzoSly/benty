@@ -7,6 +7,8 @@ import {
   CardStyle,
   GridConfig,
   HoverEffectType,
+  ResponsiveSpan,
+  ResponsiveConfig,
 } from "@/types";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
@@ -28,16 +30,16 @@ const defaultCardStyle: CardStyle = {
 };
 
 const defaultGridConfig: GridConfig = {
-  columns: 3,
+  columns: { sm: 1, md: 2, lg: 3 },
   rows: 2,
-  gap: 4,
+  gap: { sm: 2, md: 3, lg: 4 },
   useRechartsForExport: true,
   cards: [
     {
       id: 1,
       name: "Welcome Card",
-      colSpan: 1,
-      rowSpan: 1,
+      colSpan: { sm: 1, md: 1, lg: 1 },
+      rowSpan: { sm: 1, md: 1, lg: 1 },
       order: 0,
       style: { ...defaultCardStyle },
       content: {
@@ -48,8 +50,8 @@ const defaultGridConfig: GridConfig = {
     {
       id: 2,
       name: "Feature Card",
-      colSpan: 2,
-      rowSpan: 1,
+      colSpan: { sm: 1, md: 2, lg: 2 },
+      rowSpan: { sm: 1, md: 1, lg: 1 },
       order: 1,
       style: { ...defaultCardStyle },
       content: {
@@ -61,8 +63,8 @@ const defaultGridConfig: GridConfig = {
     {
       id: 3,
       name: "Bar Chart",
-      colSpan: 1,
-      rowSpan: 1,
+      colSpan: { sm: 1, md: 1, lg: 1 },
+      rowSpan: { sm: 1, md: 1, lg: 1 },
       order: 2,
       style: { ...defaultCardStyle },
       content: {
@@ -79,8 +81,8 @@ const defaultGridConfig: GridConfig = {
     {
       id: 4,
       name: "Pie Chart",
-      colSpan: 1,
-      rowSpan: 1,
+      colSpan: { sm: 1, md: 1, lg: 1 },
+      rowSpan: { sm: 1, md: 1, lg: 1 },
       order: 3,
       style: { ...defaultCardStyle },
       content: {
@@ -97,8 +99,8 @@ const defaultGridConfig: GridConfig = {
     {
       id: 5,
       name: "Line Chart",
-      colSpan: 1,
-      rowSpan: 1,
+      colSpan: { sm: 1, md: 1, lg: 1 },
+      rowSpan: { sm: 1, md: 1, lg: 1 },
       order: 4,
       style: { ...defaultCardStyle },
       content: {
@@ -121,8 +123,17 @@ type BentoGridContextType = {
   copied: boolean;
   isFullscreenPreview: boolean;
   updateGridConfig: (config: Partial<GridConfig>) => void;
+  updateGridColumns: (
+    screenSize: keyof ResponsiveConfig,
+    value: number
+  ) => void;
+  updateGridGap: (screenSize: keyof ResponsiveConfig, value: number) => void;
   updateCardStyle: (cardId: number, style: Partial<CardStyle>) => void;
-  updateCardSize: (cardId: number, colSpan: number, rowSpan: number) => void;
+  updateCardSize: (
+    cardId: number,
+    colSpan: ResponsiveSpan,
+    rowSpan: ResponsiveSpan
+  ) => void;
   updateCardContent: (cardId: number, content: Partial<CardContent>) => void;
   updateCardName: (cardId: number, name: string) => void;
   updateCardOrder: (cardId: number, newOrder: number) => void;
@@ -163,6 +174,29 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
     setGridConfig((prev) => ({ ...prev, ...config }));
   };
 
+  const updateGridColumns = (
+    screenSize: keyof ResponsiveConfig,
+    value: number
+  ) => {
+    setGridConfig((prev) => ({
+      ...prev,
+      columns: {
+        ...prev.columns,
+        [screenSize]: value,
+      },
+    }));
+  };
+
+  const updateGridGap = (screenSize: keyof ResponsiveConfig, value: number) => {
+    setGridConfig((prev) => ({
+      ...prev,
+      gap: {
+        ...prev.gap,
+        [screenSize]: value,
+      },
+    }));
+  };
+
   const updateCardStyle = (cardId: number, style: Partial<CardStyle>) => {
     setGridConfig((prev) => ({
       ...prev,
@@ -174,11 +208,38 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateCardSize = (cardId: number, colSpan: number, rowSpan: number) => {
+  const updateCardSize = (
+    cardId: number,
+    colSpan: ResponsiveSpan,
+    rowSpan: ResponsiveSpan
+  ) => {
+    console.log("updateCardSize called with:", cardId, colSpan, rowSpan);
+
+    // Ensure all span values are numbers
+    const normalizedColSpan = {
+      sm: Number(colSpan.sm || 1),
+      md: Number(colSpan.md || 1),
+      lg: Number(colSpan.lg || 1),
+    };
+
+    const normalizedRowSpan = {
+      sm: Number(rowSpan.sm || 1),
+      md: Number(rowSpan.md || 1),
+      lg: Number(rowSpan.lg || 1),
+    };
+
+    console.log("Normalized spans:", normalizedColSpan, normalizedRowSpan);
+
     setGridConfig((prev) => ({
       ...prev,
       cards: prev.cards.map((card) =>
-        card.id === cardId ? { ...card, colSpan, rowSpan } : card
+        card.id === cardId
+          ? {
+              ...card,
+              colSpan: { ...card.colSpan, ...normalizedColSpan },
+              rowSpan: { ...card.rowSpan, ...normalizedRowSpan },
+            }
+          : card
       ),
     }));
   };
@@ -304,8 +365,8 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
         {
           id: newId,
           name: `Card ${newId}`,
-          colSpan: 1,
-          rowSpan: 1,
+          colSpan: { lg: 1, md: 1, sm: 1 },
+          rowSpan: { lg: 1, md: 1, sm: 1 },
           order: newOrder,
           style: { ...defaultCardStyle },
           content: {
@@ -499,8 +560,30 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
   };
 
   const generateCode = () => {
-    const gridTemplateColumns = `grid-cols-${gridConfig.columns}`;
-    const gridGap = `gap-${gridConfig.gap}`;
+    // Generate responsive grid classes
+    const gridClasses = [];
+
+    // Base grid (mobile/sm)
+    gridClasses.push(`grid-cols-${gridConfig.columns.sm}`);
+    gridClasses.push(`gap-${gridConfig.gap.sm}`);
+
+    // Medium screens (md)
+    if (gridConfig.columns.md !== gridConfig.columns.sm) {
+      gridClasses.push(`md:grid-cols-${gridConfig.columns.md}`);
+    }
+    if (gridConfig.gap.md !== gridConfig.gap.sm) {
+      gridClasses.push(`md:gap-${gridConfig.gap.md}`);
+    }
+
+    // Large screens (lg/desktop)
+    if (gridConfig.columns.lg !== gridConfig.columns.md) {
+      gridClasses.push(`lg:grid-cols-${gridConfig.columns.lg}`);
+    }
+    if (gridConfig.gap.lg !== gridConfig.gap.md) {
+      gridClasses.push(`lg:gap-${gridConfig.gap.lg}`);
+    }
+
+    const gridTemplateClasses = gridClasses.join(" ");
 
     const imports = [];
 
@@ -519,14 +602,60 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
 
     let code = imports.length > 0 ? imports.join("\n") + "\n\n" : "";
 
-    code += `<div className="grid ${gridTemplateColumns} ${gridGap}">\n`;
+    code += `<div className="grid ${gridTemplateClasses}">\n`;
 
     // Sort cards by order before generating code
     const sortedCards = [...gridConfig.cards].sort((a, b) => a.order - b.order);
 
     sortedCards.forEach((card) => {
-      const colSpan = card.colSpan > 1 ? `col-span-${card.colSpan}` : "";
-      const rowSpan = card.rowSpan > 1 ? `row-span-${card.rowSpan}` : "";
+      // Generate responsive column and row span classes
+      const colSpanClasses = [];
+      const rowSpanClasses = [];
+
+      // Base span (mobile/sm)
+      colSpanClasses.push(
+        card.colSpan.sm > 1 ? `col-span-${card.colSpan.sm}` : ""
+      );
+      rowSpanClasses.push(
+        card.rowSpan.sm > 1 ? `row-span-${card.rowSpan.sm}` : ""
+      );
+
+      // Medium screens (md)
+      if (card.colSpan.md !== card.colSpan.sm) {
+        colSpanClasses.push(
+          card.colSpan.md > 1
+            ? `md:col-span-${card.colSpan.md}`
+            : "md:col-span-1"
+        );
+      }
+      if (card.rowSpan.md !== card.rowSpan.sm) {
+        rowSpanClasses.push(
+          card.rowSpan.md > 1
+            ? `md:row-span-${card.rowSpan.md}`
+            : "md:row-span-1"
+        );
+      }
+
+      // Large screens (lg/desktop)
+      if (card.colSpan.lg !== card.colSpan.md) {
+        colSpanClasses.push(
+          card.colSpan.lg > 1
+            ? `lg:col-span-${card.colSpan.lg}`
+            : "lg:col-span-1"
+        );
+      }
+      if (card.rowSpan.lg !== card.rowSpan.md) {
+        rowSpanClasses.push(
+          card.rowSpan.lg > 1
+            ? `lg:row-span-${card.rowSpan.lg}`
+            : "lg:row-span-1"
+        );
+      }
+
+      // Combine all responsive classes
+      const responsiveClasses = [...colSpanClasses, ...rowSpanClasses]
+        .filter(Boolean)
+        .join(" ");
       const cardClass = generateCardClass(card);
 
       // Generate style object for the card
@@ -596,7 +725,7 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
           : "";
 
       code += `  {/* ${card.name} */}\n`;
-      code += `  <Card className="${[colSpan, rowSpan, cardClass]
+      code += `  <Card className="${[responsiveClasses, cardClass]
         .filter(Boolean)
         .join(" ")}"${styleString}>\n`;
       code += `    <CardContent className="p-6">\n`;
@@ -1101,6 +1230,8 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
         copied,
         isFullscreenPreview,
         updateGridConfig,
+        updateGridColumns,
+        updateGridGap,
         updateCardStyle,
         updateCardSize,
         updateCardContent,
