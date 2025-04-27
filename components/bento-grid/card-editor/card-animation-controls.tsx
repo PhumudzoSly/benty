@@ -1,12 +1,19 @@
-"use client"
+"use client";
 
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useBentoGrid, type BentoCard, type AnimationType } from "../bento-grid-context"
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useBentoGrid } from "../bento-grid-context";
+import { AnimationType, BentoCard } from "@/types";
 
 export function CardAnimationControls({ card }: { card: BentoCard }) {
-  const { updateCardStyle } = useBentoGrid()
+  const { updateCardStyle } = useBentoGrid();
 
   return (
     <div className="space-y-4">
@@ -14,7 +21,9 @@ export function CardAnimationControls({ card }: { card: BentoCard }) {
         <Label>Animation Type</Label>
         <Select
           value={card.style.animation}
-          onValueChange={(value: AnimationType) => updateCardStyle(card.id, { animation: value })}
+          onValueChange={(value: AnimationType) =>
+            updateCardStyle(card.id, { animation: value })
+          }
         >
           <SelectTrigger>
             <SelectValue />
@@ -39,14 +48,18 @@ export function CardAnimationControls({ card }: { card: BentoCard }) {
         <>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <Label>Duration: {card.style.animationDuration.toFixed(1)}s</Label>
+              <Label>
+                Duration: {card.style.animationDuration.toFixed(1)}s
+              </Label>
             </div>
             <Slider
               value={[card.style.animationDuration]}
               min={0.1}
               max={2}
               step={0.1}
-              onValueChange={([value]) => updateCardStyle(card.id, { animationDuration: value })}
+              onValueChange={([value]) =>
+                updateCardStyle(card.id, { animationDuration: value })
+              }
             />
           </div>
 
@@ -59,17 +72,20 @@ export function CardAnimationControls({ card }: { card: BentoCard }) {
               min={0}
               max={2}
               step={0.1}
-              onValueChange={([value]) => updateCardStyle(card.id, { animationDelay: value })}
+              onValueChange={([value]) =>
+                updateCardStyle(card.id, { animationDelay: value })
+              }
             />
           </div>
 
           <div className="mt-2">
             <p className="text-xs text-muted-foreground">
-              Animation will be applied when the card is rendered. You can preview by toggling between tabs.
+              Animation will be applied when the card is rendered. You can
+              preview by toggling between tabs.
             </p>
           </div>
         </>
       )}
     </div>
-  )
+  );
 }

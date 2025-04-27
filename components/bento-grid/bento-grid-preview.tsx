@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import { useBentoGrid } from "./bento-grid-context"
-import { CardContentRenderer } from "./card-content-renderer"
-import { Maximize2, Minimize2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { useBentoGrid } from "./bento-grid-context";
+import { CardContentRenderer } from "./card-content-renderer";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ModeToggle } from "../mode-switcher";
 
 export function BentoGridPreview({ className }: { className?: string }) {
   const {
@@ -18,10 +19,10 @@ export function BentoGridPreview({ className }: { className?: string }) {
     generateCardAnimationStyle,
     isFullscreenPreview,
     toggleFullscreenPreview,
-  } = useBentoGrid()
+  } = useBentoGrid();
 
   // Sort cards by order
-  const sortedCards = [...gridConfig.cards].sort((a, b) => a.order - b.order)
+  const sortedCards = [...gridConfig.cards].sort((a, b) => a.order - b.order);
 
   const renderGrid = () => (
     <div
@@ -36,7 +37,9 @@ export function BentoGridPreview({ className }: { className?: string }) {
           key={card.id}
           className={cn(
             "transition-all duration-200",
-            selectedCardId === card.id && !isFullscreenPreview ? "ring-2 ring-primary" : "",
+            selectedCardId === card.id && !isFullscreenPreview
+              ? "ring-2 ring-primary"
+              : ""
           )}
           style={{
             gridColumn: `span ${card.colSpan} / span ${card.colSpan}`,
@@ -48,7 +51,10 @@ export function BentoGridPreview({ className }: { className?: string }) {
           <Card
             className={cn(generateCardClass(card), "h-full")}
             style={{
-              ...generateGlassmorphismStyle(card.style.glassmorphism, card.style.glassmorphismOpacity),
+              ...generateGlassmorphismStyle(
+                card.style.glassmorphism,
+                card.style.glassmorphismOpacity
+              ),
               ...generateCardAnimationStyle(card),
             }}
           >
@@ -64,11 +70,11 @@ export function BentoGridPreview({ className }: { className?: string }) {
         </div>
       ))}
     </div>
-  )
+  );
 
   return (
     <>
-      <Card className={className}>
+      <Card className={cn(className, "bg-transparent")}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Preview</h2>
@@ -76,10 +82,15 @@ export function BentoGridPreview({ className }: { className?: string }) {
               <div className="text-sm text-muted-foreground mr-2">
                 {!isFullscreenPreview && "Click on a card to edit"}
               </div>
-              <Button variant="outline" size="icon" onClick={toggleFullscreenPreview}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleFullscreenPreview}
+              >
                 <Maximize2 className="h-4 w-4" />
                 <span className="sr-only">Fullscreen Preview</span>
               </Button>
+              <ModeToggle />
             </div>
           </div>
           <div className="relative">
@@ -104,7 +115,11 @@ export function BentoGridPreview({ className }: { className?: string }) {
         <DialogContent className="max-w-[90vw] w-[90vw] max-h-[90vh] h-[90vh] overflow-auto p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Fullscreen Preview</h2>
-            <Button variant="outline" size="icon" onClick={toggleFullscreenPreview}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleFullscreenPreview}
+            >
               <Minimize2 className="h-4 w-4" />
               <span className="sr-only">Exit Fullscreen</span>
             </Button>
@@ -113,5 +128,5 @@ export function BentoGridPreview({ className }: { className?: string }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

@@ -1,24 +1,41 @@
-"use client"
+"use client";
 
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { type AnimationType, type HoverEffectType, useBentoGrid } from "./bento-grid-context"
-import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useBentoGrid } from "./bento-grid-context";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimationType, HoverEffectType } from "@/types";
 
 export function AnimationControls() {
-  const { selectedCardId, gridConfig, updateCardStyle, applyAnimationToAll, applyHoverEffectToAll } = useBentoGrid()
+  const {
+    selectedCardId,
+    gridConfig,
+    updateCardStyle,
+    applyAnimationToAll,
+    applyHoverEffectToAll,
+  } = useBentoGrid();
 
-  const selectedCard = selectedCardId ? gridConfig.cards.find((card) => card.id === selectedCardId) : null
+  const selectedCard = selectedCardId
+    ? gridConfig.cards.find((card) => card.id === selectedCardId)
+    : null;
 
-  const [globalAnimation, setGlobalAnimation] = useState<AnimationType>("fade-in")
-  const [globalDuration, setGlobalDuration] = useState(0.5)
-  const [globalDelay, setGlobalDelay] = useState(0)
+  const [globalAnimation, setGlobalAnimation] =
+    useState<AnimationType>("fade-in");
+  const [globalDuration, setGlobalDuration] = useState(0.5);
+  const [globalDelay, setGlobalDelay] = useState(0);
 
-  const [globalHoverEffect, setGlobalHoverEffect] = useState<HoverEffectType>("scale")
-  const [globalHoverDuration, setGlobalHoverDuration] = useState(0.3)
+  const [globalHoverEffect, setGlobalHoverEffect] =
+    useState<HoverEffectType>("scale");
+  const [globalHoverDuration, setGlobalHoverDuration] = useState(0.3);
 
   return (
     <div className="space-y-6">
@@ -38,7 +55,9 @@ export function AnimationControls() {
                   <Label>Animation Type</Label>
                   <Select
                     value={selectedCard.style.animation}
-                    onValueChange={(value: AnimationType) => updateCardStyle(selectedCard.id, { animation: value })}
+                    onValueChange={(value: AnimationType) =>
+                      updateCardStyle(selectedCard.id, { animation: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -63,43 +82,65 @@ export function AnimationControls() {
                   <>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <Label>Duration: {selectedCard.style.animationDuration.toFixed(1)}s</Label>
+                        <Label>
+                          Duration:{" "}
+                          {selectedCard.style.animationDuration.toFixed(1)}s
+                        </Label>
                       </div>
                       <Slider
                         value={[selectedCard.style.animationDuration]}
                         min={0.1}
                         max={2}
                         step={0.1}
-                        onValueChange={([value]) => updateCardStyle(selectedCard.id, { animationDuration: value })}
+                        onValueChange={([value]) =>
+                          updateCardStyle(selectedCard.id, {
+                            animationDuration: value,
+                          })
+                        }
                       />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <Label>Delay: {selectedCard.style.animationDelay.toFixed(1)}s</Label>
+                        <Label>
+                          Delay: {selectedCard.style.animationDelay.toFixed(1)}s
+                        </Label>
                       </div>
                       <Slider
                         value={[selectedCard.style.animationDelay]}
                         min={0}
                         max={2}
                         step={0.1}
-                        onValueChange={([value]) => updateCardStyle(selectedCard.id, { animationDelay: value })}
+                        onValueChange={([value]) =>
+                          updateCardStyle(selectedCard.id, {
+                            animationDelay: value,
+                          })
+                        }
                       />
                     </div>
                   </>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Select a card to edit its animation.</p>
+              <p className="text-sm text-muted-foreground">
+                Select a card to edit its animation.
+              </p>
             )}
           </div>
 
           <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-medium mb-4">Apply Animation to All Cards</h3>
+            <h3 className="text-lg font-medium mb-4">
+              Apply Animation to All Cards
+            </h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Animation Type</Label>
-                <Select value={globalAnimation} onValueChange={(value: AnimationType) => setGlobalAnimation(value)}>
+                <Select
+                  value={globalAnimation}
+                  onValueChange={(value: AnimationType) =>
+                    setGlobalAnimation(value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -149,12 +190,18 @@ export function AnimationControls() {
 
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
-                      This will apply the same animation to all cards. You can add staggered delays for a sequence
-                      effect.
+                      This will apply the same animation to all cards. You can
+                      add staggered delays for a sequence effect.
                     </Label>
                     <Button
                       className="w-full"
-                      onClick={() => applyAnimationToAll(globalAnimation, globalDuration, globalDelay)}
+                      onClick={() =>
+                        applyAnimationToAll(
+                          globalAnimation,
+                          globalDuration,
+                          globalDelay
+                        )
+                      }
                     >
                       Apply to All Cards
                     </Button>
@@ -175,7 +222,9 @@ export function AnimationControls() {
                   <Label>Hover Effect</Label>
                   <Select
                     value={selectedCard.style.hoverEffect}
-                    onValueChange={(value: HoverEffectType) => updateCardStyle(selectedCard.id, { hoverEffect: value })}
+                    onValueChange={(value: HoverEffectType) =>
+                      updateCardStyle(selectedCard.id, { hoverEffect: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -186,8 +235,12 @@ export function AnimationControls() {
                       <SelectItem value="lift">Lift</SelectItem>
                       <SelectItem value="glow">Glow</SelectItem>
                       <SelectItem value="border-glow">Border Glow</SelectItem>
-                      <SelectItem value="background-shift">Background Shift</SelectItem>
-                      <SelectItem value="text-shift">Text Color Shift</SelectItem>
+                      <SelectItem value="background-shift">
+                        Background Shift
+                      </SelectItem>
+                      <SelectItem value="text-shift">
+                        Text Color Shift
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -195,31 +248,44 @@ export function AnimationControls() {
                 {selectedCard.style.hoverEffect !== "none" && (
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>Transition Duration: {selectedCard.style.hoverTransitionDuration.toFixed(1)}s</Label>
+                      <Label>
+                        Transition Duration:{" "}
+                        {selectedCard.style.hoverTransitionDuration.toFixed(1)}s
+                      </Label>
                     </div>
                     <Slider
                       value={[selectedCard.style.hoverTransitionDuration]}
                       min={0.1}
                       max={1}
                       step={0.1}
-                      onValueChange={([value]) => updateCardStyle(selectedCard.id, { hoverTransitionDuration: value })}
+                      onValueChange={([value]) =>
+                        updateCardStyle(selectedCard.id, {
+                          hoverTransitionDuration: value,
+                        })
+                      }
                     />
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Select a card to edit its hover effect.</p>
+              <p className="text-sm text-muted-foreground">
+                Select a card to edit its hover effect.
+              </p>
             )}
           </div>
 
           <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-medium mb-4">Apply Hover Effect to All Cards</h3>
+            <h3 className="text-lg font-medium mb-4">
+              Apply Hover Effect to All Cards
+            </h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Hover Effect</Label>
                 <Select
                   value={globalHoverEffect}
-                  onValueChange={(value: HoverEffectType) => setGlobalHoverEffect(value)}
+                  onValueChange={(value: HoverEffectType) =>
+                    setGlobalHoverEffect(value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -230,7 +296,9 @@ export function AnimationControls() {
                     <SelectItem value="lift">Lift</SelectItem>
                     <SelectItem value="glow">Glow</SelectItem>
                     <SelectItem value="border-glow">Border Glow</SelectItem>
-                    <SelectItem value="background-shift">Background Shift</SelectItem>
+                    <SelectItem value="background-shift">
+                      Background Shift
+                    </SelectItem>
                     <SelectItem value="text-shift">Text Color Shift</SelectItem>
                   </SelectContent>
                 </Select>
@@ -240,7 +308,9 @@ export function AnimationControls() {
                 <>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>Transition Duration: {globalHoverDuration.toFixed(1)}s</Label>
+                      <Label>
+                        Transition Duration: {globalHoverDuration.toFixed(1)}s
+                      </Label>
                     </div>
                     <Slider
                       value={[globalHoverDuration]}
@@ -257,7 +327,12 @@ export function AnimationControls() {
                     </Label>
                     <Button
                       className="w-full"
-                      onClick={() => applyHoverEffectToAll(globalHoverEffect, globalHoverDuration)}
+                      onClick={() =>
+                        applyHoverEffectToAll(
+                          globalHoverEffect,
+                          globalHoverDuration
+                        )
+                      }
                     >
                       Apply to All Cards
                     </Button>
@@ -269,5 +344,5 @@ export function AnimationControls() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

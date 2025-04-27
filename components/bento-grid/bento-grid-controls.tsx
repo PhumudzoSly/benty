@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useBentoGrid } from "./bento-grid-context"
-import { GridControls } from "./grid-controls"
-import { CardsList } from "./cards-list"
-import { CardEditor } from "./card-editor"
-import { AnimationControls } from "./animation-controls"
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBentoGrid } from "./bento-grid-context";
+import { GridControls } from "./grid-controls";
+import { CardsList } from "./cards-list";
+import { CardEditor } from "./card-editor";
+import { AnimationControls } from "./animation-controls";
 
 export function BentoGridControls() {
-  const { selectedCardId } = useBentoGrid()
+  const { selectedCardId } = useBentoGrid();
 
   return (
-    <Card className="sticky top-4">
+    <Card className="sticky top-4 bg-transparent">
       <CardContent className="p-6">
         <Tabs defaultValue="grid">
           <TabsList className="grid grid-cols-3 mb-4">
@@ -40,5 +40,5 @@ export function BentoGridControls() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }

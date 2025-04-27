@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { Minus, Plus } from "lucide-react"
-import { useBentoGrid, type BentoCard } from "../bento-grid-context"
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Minus, Plus } from "lucide-react";
+import { useBentoGrid } from "../bento-grid-context";
+import { BentoCard } from "@/types";
 
 export function CardSizeControls({ card }: { card: BentoCard }) {
-  const { gridConfig, updateCardSize, updateCardStyle } = useBentoGrid()
+  const { gridConfig, updateCardSize, updateCardStyle } = useBentoGrid();
 
   return (
     <div className="space-y-4">
@@ -24,7 +25,7 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
                 className="h-6 w-6"
                 onClick={() => {
                   if (card.colSpan > 1) {
-                    updateCardSize(card.id, card.colSpan - 1, card.rowSpan)
+                    updateCardSize(card.id, card.colSpan - 1, card.rowSpan);
                   }
                 }}
                 disabled={card.colSpan <= 1}
@@ -38,7 +39,7 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
                 className="h-6 w-6"
                 onClick={() => {
                   if (card.colSpan < gridConfig.columns) {
-                    updateCardSize(card.id, card.colSpan + 1, card.rowSpan)
+                    updateCardSize(card.id, card.colSpan + 1, card.rowSpan);
                   }
                 }}
                 disabled={card.colSpan >= gridConfig.columns}
@@ -52,7 +53,9 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
             min={1}
             max={gridConfig.columns}
             step={1}
-            onValueChange={([value]) => updateCardSize(card.id, value, card.rowSpan)}
+            onValueChange={([value]) =>
+              updateCardSize(card.id, value, card.rowSpan)
+            }
           />
         </div>
         <div className="space-y-2">
@@ -65,7 +68,7 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
                 className="h-6 w-6"
                 onClick={() => {
                   if (card.rowSpan > 1) {
-                    updateCardSize(card.id, card.colSpan, card.rowSpan - 1)
+                    updateCardSize(card.id, card.colSpan, card.rowSpan - 1);
                   }
                 }}
                 disabled={card.rowSpan <= 1}
@@ -79,7 +82,7 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
                 className="h-6 w-6"
                 onClick={() => {
                   if (card.rowSpan < 3) {
-                    updateCardSize(card.id, card.colSpan, card.rowSpan + 1)
+                    updateCardSize(card.id, card.colSpan, card.rowSpan + 1);
                   }
                 }}
                 disabled={card.rowSpan >= 3}
@@ -93,7 +96,9 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
             min={1}
             max={3}
             step={1}
-            onValueChange={([value]) => updateCardSize(card.id, card.colSpan, value)}
+            onValueChange={([value]) =>
+              updateCardSize(card.id, card.colSpan, value)
+            }
           />
         </div>
       </div>
@@ -104,7 +109,9 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
           <Switch
             id="equal-height"
             checked={card.style.equalHeight}
-            onCheckedChange={(checked) => updateCardStyle(card.id, { equalHeight: checked })}
+            onCheckedChange={(checked) =>
+              updateCardStyle(card.id, { equalHeight: checked })
+            }
           />
         </div>
         <p className="text-xs text-muted-foreground">
@@ -112,5 +119,5 @@ export function CardSizeControls({ card }: { card: BentoCard }) {
         </p>
       </div>
     </div>
-  )
+  );
 }

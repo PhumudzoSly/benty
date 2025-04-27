@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { useBentoGrid, type BentoCard } from "../bento-grid-context"
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { useBentoGrid } from "../bento-grid-context";
+import { BentoCard } from "@/types";
 
 export function CardBasicInfo({ card }: { card: BentoCard }) {
-  const { updateCardName } = useBentoGrid()
+  const { updateCardName } = useBentoGrid();
 
   return (
     <div className="space-y-2">
@@ -20,5 +21,5 @@ export function CardBasicInfo({ card }: { card: BentoCard }) {
         This name is used for identification in the editor and code comments.
       </p>
     </div>
-  )
+  );
 }

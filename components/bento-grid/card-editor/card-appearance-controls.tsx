@@ -1,13 +1,20 @@
-"use client"
+"use client";
 
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { useBentoGrid, type BentoCard } from "../bento-grid-context"
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useBentoGrid } from "../bento-grid-context";
+import { BentoCard } from "@/types";
 
 export function CardAppearanceControls({ card }: { card: BentoCard }) {
-  const { updateCardStyle } = useBentoGrid()
+  const { updateCardStyle } = useBentoGrid();
 
   return (
     <div className="space-y-6">
@@ -18,7 +25,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
             <Label>Background</Label>
             <Select
               value={card.style.backgroundColor}
-              onValueChange={(value) => updateCardStyle(card.id, { backgroundColor: value })}
+              onValueChange={(value) =>
+                updateCardStyle(card.id, { backgroundColor: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -38,7 +47,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
             <Label>Text Color</Label>
             <Select
               value={card.style.textColor}
-              onValueChange={(value) => updateCardStyle(card.id, { textColor: value })}
+              onValueChange={(value) =>
+                updateCardStyle(card.id, { textColor: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -65,7 +76,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
             <Switch
               id="border-toggle"
               checked={card.style.border}
-              onCheckedChange={(checked) => updateCardStyle(card.id, { border: checked })}
+              onCheckedChange={(checked) =>
+                updateCardStyle(card.id, { border: checked })
+              }
             />
           </div>
 
@@ -79,7 +92,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
                 min={1}
                 max={4}
                 step={1}
-                onValueChange={([value]) => updateCardStyle(card.id, { borderWidth: value })}
+                onValueChange={([value]) =>
+                  updateCardStyle(card.id, { borderWidth: value })
+                }
               />
             </div>
           )}
@@ -88,7 +103,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
             <Label>Border Radius</Label>
             <Select
               value={card.style.borderRadius}
-              onValueChange={(value: any) => updateCardStyle(card.id, { borderRadius: value })}
+              onValueChange={(value: any) =>
+                updateCardStyle(card.id, { borderRadius: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -113,7 +130,9 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
             <Label>Shadow</Label>
             <Select
               value={card.style.shadow}
-              onValueChange={(value: any) => updateCardStyle(card.id, { shadow: value })}
+              onValueChange={(value: any) =>
+                updateCardStyle(card.id, { shadow: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -134,21 +153,27 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
               <Switch
                 id="glass-toggle"
                 checked={card.style.glassmorphism}
-                onCheckedChange={(checked) => updateCardStyle(card.id, { glassmorphism: checked })}
+                onCheckedChange={(checked) =>
+                  updateCardStyle(card.id, { glassmorphism: checked })
+                }
               />
             </div>
 
             {card.style.glassmorphism && (
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <Label>Opacity: {card.style.glassmorphismOpacity.toFixed(1)}</Label>
+                  <Label>
+                    Opacity: {card.style.glassmorphismOpacity.toFixed(1)}
+                  </Label>
                 </div>
                 <Slider
                   value={[card.style.glassmorphismOpacity]}
                   min={0.1}
                   max={0.9}
                   step={0.1}
-                  onValueChange={([value]) => updateCardStyle(card.id, { glassmorphismOpacity: value })}
+                  onValueChange={([value]) =>
+                    updateCardStyle(card.id, { glassmorphismOpacity: value })
+                  }
                 />
               </div>
             )}
@@ -156,5 +181,5 @@ export function CardAppearanceControls({ card }: { card: BentoCard }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

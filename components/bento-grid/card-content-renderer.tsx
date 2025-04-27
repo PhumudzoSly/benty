@@ -14,7 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "@/components/ui/chart";
-import type { BentoCard } from "./bento-grid-context";
+import { BentoCard } from "@/types";
 
 export function CardContentRenderer({ card }: { card: BentoCard }) {
   const { content } = card;
