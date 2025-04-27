@@ -1,20 +1,50 @@
 "use client";
 
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowUp, ArrowDown, ArrowRight, Quote } from "lucide-react";
+// Remove unused imports: Progress, Button, Avatar, AvatarFallback, AvatarImage, ResponsiveContainer, Legend, Rectangle, RechartsTooltip, CartesianGrid
 import {
-  PieChart,
+  ArrowUp,
+  ArrowDown,
+  ArrowRight,
+  Quote,
+  type LucideIcon,
+  Zap,
+  ShieldCheck,
+  Rocket,
+} from "lucide-react";
+import {
+  PieChart as RechartsPieChart,
   Pie,
-  BarChart,
+  BarChart as RechartsBarChart,
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
+  // CartesianGrid, // Removed
+  // Tooltip as RechartsTooltip, // Removed
+  LineChart as RechartsLineChart,
+  Line,
+  // Legend, // Removed
+  // Rectangle, // Removed
+} from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { BentoCard } from "@/types";
+import { Progress } from "@/components/ui/progress"; // Keep Progress for progress-card
+import { Button } from "@/components/ui/button"; // Keep Button for cta-card
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Keep Avatar for testimonial
+
+// Map icon names (strings) to actual Lucide components
+// Add more icons here and import them above as needed
+const iconMap: { [key: string]: LucideIcon } = {
+  zap: Zap,
+  shield: ShieldCheck,
+  rocket: Rocket,
+};
 
 export function CardContentRenderer({ card }: { card: BentoCard }) {
   const { content } = card;
@@ -154,81 +184,165 @@ export function CardContentRenderer({ card }: { card: BentoCard }) {
           )}
         </div>
       );
-    case "pie-chart":
+    case "pie-chart": {
+      const chartData =
+        content.chartData?.labels?.map((label, i) => ({
+          name: label,
+          value: content.chartData?.values?.[i] || 0,
+          fill: content.chartData?.colors?.[i] || `hsl(var(--chart-${i + 1}))`,
+        })) || [];
+
+      const chartConfig = chartData.reduce((acc, item) => {
+        acc[item.name] = {
+          label: item.name,
+          color: item.fill,
+        };
+        return acc;
+      }, {} as ChartConfig);
+
       return (
-        <div className="space-y-4 w-full">
+        <div className="space-y-4 w-full h-full flex flex-col">
           {content.heading && (
-            <h3 className="text-lg font-semibold">{content.heading}</h3>
+            <h3 className="text-lg font-semibold text-center">
+              {content.heading}
+            </h3>
           )}
-          <div className="flex justify-center">
-            <PieChart width={200} height={200}>
-              <Pie
-                data={
-                  content.chartData?.labels && content.chartData.values
-                    ? content.chartData.labels.map((label, i) => ({
-                        name: label,
-                        value: content.chartData?.values[i] || 0,
-                        fill:
-                          content.chartData?.colors?.[i] ||
-                          `#${Math.floor(Math.random() * 16777215).toString(
-                            16
-                          )}`,
-                      }))
-                    : [
-                        { name: "Group A", value: 400, fill: "#0088FE" },
-                        { name: "Group B", value: 300, fill: "#00C49F" },
-                        { name: "Group C", value: 300, fill: "#FFBB28" },
-                      ]
-                }
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
+          <ChartContainer config={chartConfig} className="flex-1 min-h-[200px]">
+            <RechartsPieChart>
+              <ChartTooltip
+                content={<ChartTooltipContent nameKey="value" hideLabel />}
               />
-              <Tooltip />
-            </PieChart>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">
-            {content.text}
-          </p>
-        </div>
-      );
-    case "bar-chart":
-      return (
-        <div className="space-y-4 w-full">
-          {content.heading && (
-            <h3 className="text-lg font-semibold">{content.heading}</h3>
+              <Pie data={chartData} dataKey="value" nameKey="name" label />
+              <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+            </RechartsPieChart>
+          </ChartContainer>
+          {content.text && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              {content.text}
+            </p>
           )}
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={
-                  content.chartData?.labels && content.chartData.values
-                    ? content.chartData.labels.map((label, i) => ({
-                        name: label,
-                        value: content.chartData?.values[i] || 0,
-                      }))
-                    : [
-                        { name: "Jan", value: 400 },
-                        { name: "Feb", value: 300 },
-                        { name: "Mar", value: 500 },
-                        { name: "Apr", value: 200 },
-                        { name: "May", value: 350 },
-                      ]
-                }
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="text-center text-sm text-muted-foreground">
-            {content.text}
-          </p>
         </div>
       );
+    }
+    case "bar-chart": {
+      const chartData =
+        content.chartData?.labels?.map((label, i) => ({
+          label: label,
+          value: content.chartData?.values?.[i] || 0,
+          fill: content.chartData?.colors?.[i] || `hsl(var(--chart-${i + 1}))`,
+        })) || [];
+
+      const chartConfig = chartData.reduce(
+        (acc, item) => {
+          acc[item.label] = {
+            label: item.label,
+            color: item.fill,
+          };
+          return acc;
+        },
+        {
+          value: { label: content.chartData?.values || "Value" },
+        } as ChartConfig
+      );
+
+      return (
+        <div className="space-y-4 w-full h-full flex flex-col">
+          {content.heading && (
+            <h3 className="text-lg font-semibold text-center">
+              {content.heading}
+            </h3>
+          )}
+          <ChartContainer config={chartConfig} className="flex-1 min-h-[200px]">
+            <RechartsBarChart accessibilityLayer data={chartData}>
+              {/* <CartesianGrid vertical={false} /> // Optional Grid */}
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+              />
+              <YAxis />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Bar
+                dataKey="value"
+                radius={8}
+                // Fill is handled by ChartContainer based on config
+              />
+            </RechartsBarChart>
+          </ChartContainer>
+          {content.text && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              {content.text}
+            </p>
+          )}
+        </div>
+      );
+    }
+    case "line-chart": {
+      const chartData =
+        content.chartData?.labels?.map((label, i) => ({
+          label: label, // Use label for XAxis dataKey
+          value: content.chartData?.values?.[i] || 0,
+          // Assuming single line for now, color can be adapted for multi-line
+          color: content.chartData?.colors?.[0] || `hsl(var(--chart-1))`,
+        })) || [];
+
+      const chartConfig = {
+        value: {
+          label: content.chartData?.values || "Value",
+          color: content.chartData?.colors?.[0] || `hsl(var(--chart-1))`,
+        },
+      } satisfies ChartConfig;
+
+      return (
+        <div className="space-y-4 w-full h-full flex flex-col">
+          {content.heading && (
+            <h3 className="text-lg font-semibold text-center">
+              {content.heading}
+            </h3>
+          )}
+          <ChartContainer config={chartConfig} className="flex-1 min-h-[200px]">
+            <RechartsLineChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              {/* <CartesianGrid vertical={false} /> // Optional Grid */}
+              <XAxis
+                dataKey="label" // Use label from data
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => value.slice(0, 3)} // Example formatter
+              />
+              <YAxis />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Line
+                dataKey="value"
+                type="monotone"
+                stroke="var(--color-value)" // Use color from config
+                strokeWidth={2}
+                dot={false}
+              />
+            </RechartsLineChart>
+          </ChartContainer>
+          {content.text && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              {content.text}
+            </p>
+          )}
+        </div>
+      );
+    }
     case "progress-card":
       return (
         <div className="space-y-4 w-full">
@@ -283,24 +397,30 @@ export function CardContentRenderer({ card }: { card: BentoCard }) {
         </div>
       );
     case "feature-card":
-      const IconComponent = content.icon ? eval(content.icon) : null;
+      const IconComponent = content.icon
+        ? iconMap[content.icon.toLowerCase()]
+        : null;
       return (
-        <div className="space-y-4 w-full">
-          {content.icon && (
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              {IconComponent && (
-                <IconComponent className="h-5 w-5 text-primary" />
-              )}
+        <div className="flex items-start gap-4 w-full">
+          {IconComponent && (
+            <div className="p-2 bg-primary/10 rounded-md">
+              <IconComponent className="h-6 w-6 text-primary" />
             </div>
           )}
-          {content.heading && (
-            <h3 className="text-lg font-semibold">{content.heading}</h3>
-          )}
-          <p className="text-muted-foreground">{content.text}</p>
+          <div className="flex-1">
+            {content.heading && (
+              <h3 className="text-lg font-semibold mb-1">{content.heading}</h3>
+            )}
+            <p className="text-sm text-muted-foreground">{content.text}</p>
+          </div>
         </div>
       );
     case "text-only":
     default:
-      return <div>{content.text}</div>;
+      return (
+        <div className="w-full">
+          <p>{content.text}</p>
+        </div>
+      );
   }
 }
