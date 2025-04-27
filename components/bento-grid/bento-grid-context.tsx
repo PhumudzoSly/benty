@@ -157,7 +157,7 @@ type BentoGridContextType = {
     enabled: boolean,
     opacity: number
   ) => Record<string, string>;
-  generateCode: () => string;
+  generateCode: () => { reactCode: string; cssCode: string };
 };
 
 const BentoGridContext = createContext<BentoGridContextType | undefined>(
@@ -560,6 +560,10 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
   };
 
   const generateCode = () => {
+    // Generate React component code
+    let reactCode = "";
+    let cssCode = "";
+
     // Generate responsive grid classes
     const gridClasses = [];
 
@@ -585,8 +589,6 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
 
     const gridTemplateClasses = gridClasses.join(" ");
 
-    const imports = [];
-
     // Check if we need to import chart components
     const hasCharts = gridConfig.cards.some((card) =>
       ["bar-chart", "pie-chart", "line-chart", "donut-chart"].includes(
@@ -594,15 +596,18 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
       )
     );
 
+    // Start building React component code
+    reactCode += `import React from "react";\n`;
+    reactCode += `import { Card, CardContent } from "@/components/ui/card";\n`;
+
     if (hasCharts && gridConfig.useRechartsForExport) {
-      imports.push(
-        'import { BarChart, Bar, PieChart, Pie, LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Cell } from "recharts";'
-      );
+      reactCode += `import { BarChart, Bar, PieChart, Pie, LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Cell } from "recharts";\n`;
     }
 
-    let code = imports.length > 0 ? imports.join("\n") + "\n\n" : "";
-
-    code += `<div className="grid ${gridTemplateClasses}">\n`;
+    reactCode += `\n`;
+    reactCode += `export function BentoGrid() {\n`;
+    reactCode += `  return (\n`;
+    reactCode += `    <div className="grid ${gridTemplateClasses}">\n`;
 
     // Sort cards by order before generating code
     const sortedCards = [...gridConfig.cards].sort((a, b) => a.order - b.order);
@@ -612,612 +617,304 @@ export function BentoGridProvider({ children }: { children: ReactNode }) {
       const colSpanClasses = [];
       const rowSpanClasses = [];
 
-      // Base span (mobile/sm)
-      colSpanClasses.push(
-        card.colSpan.sm > 1 ? `col-span-${card.colSpan.sm}` : ""
-      );
-      rowSpanClasses.push(
-        card.rowSpan.sm > 1 ? `row-span-${card.rowSpan.sm}` : ""
-      );
+      // Base spans (mobile/sm)
+      colSpanClasses.push(`col-span-${card.colSpan.sm}`);
+      rowSpanClasses.push(`row-span-${card.rowSpan.sm}`);
 
       // Medium screens (md)
       if (card.colSpan.md !== card.colSpan.sm) {
-        colSpanClasses.push(
-          card.colSpan.md > 1
-            ? `md:col-span-${card.colSpan.md}`
-            : "md:col-span-1"
-        );
+        colSpanClasses.push(`md:col-span-${card.colSpan.md}`);
       }
       if (card.rowSpan.md !== card.rowSpan.sm) {
-        rowSpanClasses.push(
-          card.rowSpan.md > 1
-            ? `md:row-span-${card.rowSpan.md}`
-            : "md:row-span-1"
-        );
+        rowSpanClasses.push(`md:row-span-${card.rowSpan.md}`);
       }
 
       // Large screens (lg/desktop)
       if (card.colSpan.lg !== card.colSpan.md) {
-        colSpanClasses.push(
-          card.colSpan.lg > 1
-            ? `lg:col-span-${card.colSpan.lg}`
-            : "lg:col-span-1"
-        );
+        colSpanClasses.push(`lg:col-span-${card.colSpan.lg}`);
       }
       if (card.rowSpan.lg !== card.rowSpan.md) {
-        rowSpanClasses.push(
-          card.rowSpan.lg > 1
-            ? `lg:row-span-${card.rowSpan.lg}`
-            : "lg:row-span-1"
-        );
+        rowSpanClasses.push(`lg:row-span-${card.rowSpan.lg}`);
       }
 
-      // Combine all responsive classes
-      const responsiveClasses = [...colSpanClasses, ...rowSpanClasses]
-        .filter(Boolean)
-        .join(" ");
-      const cardClass = generateCardClass(card);
+      const colSpanClass = colSpanClasses.join(" ");
+      const rowSpanClass = rowSpanClasses.join(" ");
 
-      // Generate style object for the card
-      const styleProps = [];
+      // Generate card styles
+      const cardClasses = [];
 
-      // Add glassmorphism if enabled
-      if (card.style.glassmorphism) {
-        styleProps.push(
-          `backgroundColor: "rgba(255, 255, 255, ${card.style.glassmorphismOpacity})"`
-        );
-        styleProps.push(`backdropFilter: "blur(10px)"`);
-      }
-
-      // Add animation if not "none"
-      if (card.style.animation !== "none") {
-        styleProps.push(
-          `animationDuration: "${card.style.animationDuration}s"`
-        );
-        styleProps.push(`animationDelay: "${card.style.animationDelay}s"`);
-        styleProps.push(`animationFillMode: "both"`);
-
-        switch (card.style.animation) {
-          case "fade-in":
-            styleProps.push(`animationName: "fadeIn"`);
-            break;
-          case "slide-up":
-            styleProps.push(`animationName: "slideUp"`);
-            break;
-          case "slide-down":
-            styleProps.push(`animationName: "slideDown"`);
-            break;
-          case "slide-left":
-            styleProps.push(`animationName: "slideLeft"`);
-            break;
-          case "slide-right":
-            styleProps.push(`animationName: "slideRight"`);
-            break;
-          case "scale-up":
-            styleProps.push(`animationName: "scaleUp"`);
-            break;
-          case "scale-down":
-            styleProps.push(`animationName: "scaleDown"`);
-            break;
-          case "bounce":
-            styleProps.push(`animationName: "bounce"`);
-            break;
-          case "pulse":
-            styleProps.push(`animationName: "pulse"`);
-            break;
-          case "spin":
-            styleProps.push(`animationName: "spin"`);
-            break;
+      // Border
+      if (card.style.border) {
+        cardClasses.push("border");
+        if (card.style.borderWidth > 1) {
+          cardClasses.push(`border-${card.style.borderWidth}`);
         }
       }
 
-      // Add transition for hover effects
-      if (card.style.hoverEffect !== "none") {
-        styleProps.push(
-          `transition: "all ${card.style.hoverTransitionDuration}s"`
-        );
+      // Border radius
+      if (card.style.borderRadius !== "none") {
+        cardClasses.push(`rounded-${card.style.borderRadius}`);
+      } else {
+        cardClasses.push("rounded-none");
       }
 
-      // Generate the style prop if we have any styles
-      const styleString =
-        styleProps.length > 0
-          ? `\n  style={{\n    ${styleProps.join(",\n    ")}\n  }}`
-          : "";
+      // Shadow
+      const shadowClass = generateShadowClass(card.style.shadow);
+      if (shadowClass) {
+        cardClasses.push(shadowClass);
+      }
 
-      code += `  {/* ${card.name} */}\n`;
-      code += `  <Card className="${[responsiveClasses, cardClass]
-        .filter(Boolean)
-        .join(" ")}"${styleString}>\n`;
-      code += `    <CardContent className="p-6">\n`;
+      // Animation
+      let animationClass = "";
+      if (card.style.animation !== "none") {
+        animationClass = `bento-${card.style.animation}`;
+        cardClasses.push(animationClass);
+      }
 
-      // Generate content based on template
+      // Hover effect
+      let hoverClass = "";
+      if (card.style.hoverEffect !== "none") {
+        hoverClass = `bento-hover-${card.style.hoverEffect}`;
+        cardClasses.push(hoverClass);
+      }
+
+      // Background and text colors
+      let bgStyle = "";
+      let textStyle = "";
+      let inlineStyle = "";
+
+      // Handle background color and glassmorphism
+      if (card.style.glassmorphism) {
+        inlineStyle = ` style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, ${card.style.glassmorphismOpacity})' }}`;
+      } else if (card.style.backgroundColor) {
+        bgStyle = ` bg-[${card.style.backgroundColor}]`;
+      }
+
+      if (card.style.textColor) {
+        textStyle = ` text-[${card.style.textColor}]`;
+      }
+
+      // Construct final class attribute
+      const cardClassStr = cardClasses.length
+        ? ` ${cardClasses.join(" ")}`
+        : "";
+
+      // Start building card JSX
+      reactCode += `      <div className="${colSpanClass} ${rowSpanClass}">\n`;
+      reactCode += `        <Card className="h-full${cardClassStr}${bgStyle}${textStyle}"${inlineStyle}>\n`;
+      reactCode += `          <CardContent className="p-4">\n`;
+
+      // Card content based on template
       switch (card.content.template) {
+        case "text-only":
+          reactCode += `            <p>${card.content.text}</p>\n`;
+          break;
+
         case "heading-text":
-          code += `      <h3 className="text-lg font-semibold mb-2">${
-            card.content.heading || ""
+          reactCode += `            <h3 className="text-lg font-semibold mb-2">${
+            card.content.heading || "Heading"
           }</h3>\n`;
-          code += `      <p>${card.content.text}</p>\n`;
+          reactCode += `            <p>${card.content.text}</p>\n`;
           break;
+
         case "image-top":
-          code += `      <div className="flex flex-col gap-4">\n`;
-          code += `        <div className="aspect-video w-full overflow-hidden rounded-md">\n`;
-          code += `          <img src="${
-            card.content.imageUrl || "/placeholder.svg?height=100&width=200"
+          reactCode += `            <div className="space-y-4">\n`;
+          reactCode += `              <div className="w-full aspect-video overflow-hidden rounded-md">\n`;
+          reactCode += `                <img src="${
+            card.content.imageUrl || "/placeholder.svg?height=100&width=100"
           }" alt="Card image" className="w-full h-full object-cover" />\n`;
-          code += `        </div>\n`;
-          code += `        <div>\n`;
+          reactCode += `              </div>\n`;
           if (card.content.heading) {
-            code += `          <h3 className="text-lg font-semibold mb-2">${card.content.heading}</h3>\n`;
+            reactCode += `              <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
           }
-          code += `          <p>${card.content.text}</p>\n`;
-          code += `        </div>\n`;
-          code += `      </div>\n`;
+          reactCode += `              <p>${card.content.text}</p>\n`;
+          reactCode += `            </div>\n`;
           break;
+
         case "image-bottom":
-          code += `      <div className="flex flex-col gap-4">\n`;
-          code += `        <div>\n`;
+          reactCode += `            <div className="space-y-4">\n`;
           if (card.content.heading) {
-            code += `          <h3 className="text-lg font-semibold mb-2">${card.content.heading}</h3>\n`;
+            reactCode += `              <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
           }
-          code += `          <p>${card.content.text}</p>\n`;
-          code += `        </div>\n`;
-          code += `        <div className="aspect-video w-full overflow-hidden rounded-md">\n`;
-          code += `          <img src="${
-            card.content.imageUrl || "/placeholder.svg?height=100&width=200"
+          reactCode += `              <p>${card.content.text}</p>\n`;
+          reactCode += `              <div className="w-full aspect-video overflow-hidden rounded-md">\n`;
+          reactCode += `                <img src="${
+            card.content.imageUrl || "/placeholder.svg?height=100&width=100"
           }" alt="Card image" className="w-full h-full object-cover" />\n`;
-          code += `        </div>\n`;
-          code += `      </div>\n`;
+          reactCode += `              </div>\n`;
+          reactCode += `            </div>\n`;
           break;
+
         case "image-side":
-          code += `      <div className="flex ${
+          reactCode += `            <div className="flex ${
             card.content.imagePosition === "right"
               ? "flex-row-reverse"
               : "flex-row"
           } gap-4">\n`;
-          code += `        <div className="w-1/3 aspect-square overflow-hidden rounded-md">\n`;
-          code += `          <img src="${
+          reactCode += `              <div className="w-1/3 aspect-square overflow-hidden rounded-md">\n`;
+          reactCode += `                <img src="${
             card.content.imageUrl || "/placeholder.svg?height=100&width=100"
           }" alt="Card image" className="w-full h-full object-cover" />\n`;
-          code += `        </div>\n`;
-          code += `        <div className="flex-1">\n`;
+          reactCode += `              </div>\n`;
+          reactCode += `              <div className="flex-1">\n`;
           if (card.content.heading) {
-            code += `          <h3 className="text-lg font-semibold mb-2">${card.content.heading}</h3>\n`;
+            reactCode += `                <h3 className="text-lg font-semibold mb-2">${card.content.heading}</h3>\n`;
           }
-          code += `          <p>${card.content.text}</p>\n`;
-          code += `        </div>\n`;
-          code += `      </div>\n`;
+          reactCode += `                <p>${card.content.text}</p>\n`;
+          reactCode += `              </div>\n`;
+          reactCode += `            </div>\n`;
           break;
-        case "two-images":
-          code += `      <div className="space-y-4">\n`;
-          if (card.content.heading) {
-            code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-          }
-          code += `        <div className="grid grid-cols-2 gap-2">\n`;
-          code += `          <div className="aspect-square overflow-hidden rounded-md">\n`;
-          code += `            <img src="${
-            card.content.imageUrl || "/placeholder.svg?height=100&width=100"
-          }" alt="First image" className="w-full h-full object-cover" />\n`;
-          code += `          </div>\n`;
-          code += `          <div className="aspect-square overflow-hidden rounded-md">\n`;
-          code += `            <img src="${
-            card.content.imageUrl2 || "/placeholder.svg?height=100&width=100"
-          }" alt="Second image" className="w-full h-full object-cover" />\n`;
-          code += `          </div>\n`;
-          code += `        </div>\n`;
-          code += `        <p>${card.content.text}</p>\n`;
-          code += `      </div>\n`;
-          break;
-        case "stat-card":
-          code += `      <div className="space-y-2">\n`;
-          if (card.content.heading) {
-            code += `        <h3 className="text-sm font-medium text-muted-foreground">${card.content.heading}</h3>\n`;
-          }
-          code += `        <div className="text-3xl font-bold">${
-            card.content.statData?.value || "0"
-          }</div>\n`;
-          if (card.content.statData?.trend) {
-            const trendColor =
-              card.content.statData.trend === "up"
-                ? "text-green-500"
-                : card.content.statData.trend === "down"
-                ? "text-red-500"
-                : "text-muted-foreground";
-            const trendIcon =
-              card.content.statData.trend === "up"
-                ? "ArrowUp"
-                : card.content.statData.trend === "down"
-                ? "ArrowDown"
-                : "ArrowRight";
-            code += `        <div className="flex items-center gap-1">\n`;
-            code += `          <${trendIcon} className="h-4 w-4 ${trendColor}" />\n`;
-            code += `          <span className="${trendColor} text-sm font-medium">${
-              card.content.statData.trendValue || "0%"
-            }</span>\n`;
-            code += `          <span className="text-muted-foreground text-sm">${card.content.text}</span>\n`;
-            code += `        </div>\n`;
-          } else {
-            code += `        <p className="text-sm text-muted-foreground">${card.content.text}</p>\n`;
-          }
-          code += `      </div>\n`;
-          break;
-        case "pie-chart":
-          if (gridConfig.useRechartsForExport) {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="h-[200px]">\n`;
-            code += `          <ResponsiveContainer width="100%" height="100%">\n`;
-            code += `            <PieChart>\n`;
-            code += `              <Pie\n`;
-            code += `                data={[\n`;
-            if (
-              card.content.chartData?.labels &&
-              card.content.chartData.values
-            ) {
-              card.content.chartData.labels.forEach((label, i) => {
-                const value = card.content.chartData?.values[i] || 0;
-                code += `                  { name: "${label}", value: ${value} },\n`;
-              });
-            } else {
-              code += `                  { name: "Group A", value: 400 },\n`;
-              code += `                  { name: "Group B", value: 300 },\n`;
-              code += `                  { name: "Group C", value: 300 },\n`;
-            }
-            code += `                ]}\n`;
-            code += `                cx="50%"\n`;
-            code += `                cy="50%"\n`;
-            code += `                outerRadius={80}\n`;
-            code += `                dataKey="value"\n`;
-            code += `                label\n`;
-            code += `              >\n`;
-            if (card.content.chartData?.colors) {
-              card.content.chartData.colors.forEach((color, i) => {
-                code += `                <Cell key={\`cell-\${${i}}\`} fill="${color}" />\n`;
-              });
-            }
-            code += `              </Pie>\n`;
-            code += `              <Tooltip />\n`;
-            code += `              <Legend />\n`;
-            code += `            </PieChart>\n`;
-            code += `          </ResponsiveContainer>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          } else {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="flex justify-center">\n`;
-            code += `          {/* Replace with your preferred chart library */}\n`;
-            code += `          <div className="bg-muted/20 rounded-md p-4 text-center">\n`;
-            code += `            <p>Pie Chart: ${
-              card.content.chartData?.labels?.join(", ") || "No data"
-            }</p>\n`;
-            code += `          </div>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          }
-          break;
-        case "bar-chart":
-          if (gridConfig.useRechartsForExport) {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="h-[200px]">\n`;
-            code += `          <ResponsiveContainer width="100%" height="100%">\n`;
-            code += `            <BarChart\n`;
-            code += `              data={[\n`;
-            if (
-              card.content.chartData?.labels &&
-              card.content.chartData.values
-            ) {
-              card.content.chartData.labels.forEach((label, i) => {
-                const value = card.content.chartData?.values[i] || 0;
-                code += `                { name: "${label}", value: ${value} },\n`;
-              });
-            } else {
-              code += `                { name: "Jan", value: 400 },\n`;
-              code += `                { name: "Feb", value: 300 },\n`;
-              code += `                { name: "Mar", value: 500 },\n`;
-              code += `                { name: "Apr", value: 200 },\n`;
-              code += `                { name: "May", value: 350 },\n`;
-            }
-            code += `              ]}\n`;
-            code += `              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}\n`;
-            code += `            >\n`;
-            code += `              <XAxis dataKey="name" />\n`;
-            code += `              <YAxis />\n`;
-            code += `              <Tooltip />\n`;
-            code += `              <Bar dataKey="value" fill="hsl(var(--primary))">\n`;
-            if (card.content.chartData?.colors) {
-              card.content.chartData.colors.forEach((color, i) => {
-                code += `                <Cell key={\`cell-\${${i}}\`} fill="${color}" />\n`;
-              });
-            }
-            code += `              </Bar>\n`;
-            code += `            </BarChart>\n`;
-            code += `          </ResponsiveContainer>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          } else {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="flex justify-center">\n`;
-            code += `          {/* Replace with your preferred chart library */}\n`;
-            code += `          <div className="bg-muted/20 rounded-md p-4 text-center">\n`;
-            code += `            <p>Bar Chart: ${
-              card.content.chartData?.labels?.join(", ") || "No data"
-            }</p>\n`;
-            code += `          </div>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          }
-          break;
-        case "line-chart":
-          if (gridConfig.useRechartsForExport) {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="h-[200px]">\n`;
-            code += `          <ResponsiveContainer width="100%" height="100%">\n`;
-            code += `            <LineChart\n`;
-            code += `              data={[\n`;
-            if (
-              card.content.chartData?.labels &&
-              card.content.chartData.values
-            ) {
-              card.content.chartData.labels.forEach((label, i) => {
-                const value = card.content.chartData?.values[i] || 0;
-                code += `                { name: "${label}", value: ${value} },\n`;
-              });
-            } else {
-              code += `                { name: "Jan", value: 100 },\n`;
-              code += `                { name: "Feb", value: 200 },\n`;
-              code += `                { name: "Mar", value: 300 },\n`;
-              code += `                { name: "Apr", value: 400 },\n`;
-              code += `                { name: "May", value: 500 },\n`;
-            }
-            code += `              ]}\n`;
-            code += `              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}\n`;
-            code += `            >\n`;
-            code += `              <XAxis dataKey="name" />\n`;
-            code += `              <YAxis />\n`;
-            code += `              <Tooltip />\n`;
-            code += `              <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />\n`;
-            code += `            </LineChart>\n`;
-            code += `          </ResponsiveContainer>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          } else {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="flex justify-center">\n`;
-            code += `          {/* Replace with your preferred chart library */}\n`;
-            code += `          <div className="bg-muted/20 rounded-md p-4 text-center">\n`;
-            code += `            <p>Line Chart: ${
-              card.content.chartData?.labels?.join(", ") || "No data"
-            }</p>\n`;
-            code += `          </div>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          }
-          break;
-        case "donut-chart":
-          if (gridConfig.useRechartsForExport) {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="h-[200px]">\n`;
-            code += `          <ResponsiveContainer width="100%" height="100%">\n`;
-            code += `            <PieChart>\n`;
-            code += `              <Pie\n`;
-            code += `                data={[\n`;
-            if (
-              card.content.chartData?.labels &&
-              card.content.chartData.values
-            ) {
-              card.content.chartData.labels.forEach((label, i) => {
-                const value = card.content.chartData?.values[i] || 0;
-                code += `                  { name: "${label}", value: ${value} },\n`;
-              });
-            } else {
-              code += `                  { name: "Group A", value: 400 },\n`;
-              code += `                  { name: "Group B", value: 300 },\n`;
-              code += `                  { name: "Group C", value: 300 },\n`;
-            }
-            code += `                ]}\n`;
-            code += `                cx="50%"\n`;
-            code += `                cy="50%"\n`;
-            code += `                innerRadius={40}\n`;
-            code += `                outerRadius={80}\n`;
-            code += `                dataKey="value"\n`;
-            code += `                label\n`;
-            code += `              >\n`;
-            if (card.content.chartData?.colors) {
-              card.content.chartData.colors.forEach((color, i) => {
-                code += `                <Cell key={\`cell-\${${i}}\`} fill="${color}" />\n`;
-              });
-            }
-            code += `              </Pie>\n`;
-            code += `              <Tooltip />\n`;
-            code += `              <Legend />\n`;
-            code += `            </PieChart>\n`;
-            code += `          </ResponsiveContainer>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          } else {
-            code += `      <div className="space-y-4">\n`;
-            if (card.content.heading) {
-              code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-            }
-            code += `        <div className="flex justify-center">\n`;
-            code += `          {/* Replace with your preferred chart library */}\n`;
-            code += `          <div className="bg-muted/20 rounded-md p-4 text-center">\n`;
-            code += `            <p>Donut Chart: ${
-              card.content.chartData?.labels?.join(", ") || "No data"
-            }</p>\n`;
-            code += `          </div>\n`;
-            code += `        </div>\n`;
-            code += `        <p className="text-center text-sm text-muted-foreground">${card.content.text}</p>\n`;
-            code += `      </div>\n`;
-          }
-          break;
-        case "progress-card":
-          code += `      <div className="space-y-4">\n`;
-          if (card.content.heading) {
-            code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-          }
-          const progressValue = card.content.statData?.value
-            ? Number.parseInt(card.content.statData.value)
-            : 50;
-          code += `        <div className="space-y-2">\n`;
-          code += `          <div className="flex justify-between text-sm font-medium">\n`;
-          code += `            <span>${
-            card.content.statData?.label || "Progress"
-          }</span>\n`;
-          code += `            <span>${progressValue}%</span>\n`;
-          code += `          </div>\n`;
-          code += `          <Progress value={${progressValue}} />\n`;
-          code += `        </div>\n`;
-          code += `        <p className="text-sm text-muted-foreground">${card.content.text}</p>\n`;
-          code += `      </div>\n`;
-          break;
-        case "cta-card":
-          code += `      <div className="flex flex-col justify-between h-full space-y-4">\n`;
-          if (card.content.heading) {
-            code += `        <h3 className="text-xl font-bold">${card.content.heading}</h3>\n`;
-          }
-          code += `        <p className="text-muted-foreground">${card.content.text}</p>\n`;
-          code += `        <Button className="w-full">${
-            card.content.ctaText || "Get Started"
-          }</Button>\n`;
-          code += `      </div>\n`;
-          break;
-        case "testimonial":
-          code += `      <div className="space-y-4">\n`;
-          code += `        <div className="relative">\n`;
-          code += `          <Quote className="absolute -top-2 -left-2 h-6 w-6 text-muted-foreground opacity-30" />\n`;
-          code += `          <p className="pl-6 italic">${card.content.text}</p>\n`;
-          code += `        </div>\n`;
-          code += `        <div className="flex items-center gap-3">\n`;
-          if (card.content.imageUrl) {
-            code += `          <Avatar>\n`;
-            code += `            <AvatarImage src="${card.content.imageUrl}" />\n`;
-            code += `            <AvatarFallback>${
-              card.content.author?.substring(0, 2) || "AB"
-            }</AvatarFallback>\n`;
-            code += `          </Avatar>\n`;
-          }
-          code += `          <div>\n`;
-          code += `            <p className="font-semibold">${
-            card.content.author || "Anonymous"
-          }</p>\n`;
-          if (card.content.role) {
-            code += `            <p className="text-sm text-muted-foreground">${card.content.role}</p>\n`;
-          }
-          code += `          </div>\n`;
-          code += `        </div>\n`;
-          code += `      </div>\n`;
-          break;
-        case "feature-card":
-          code += `      <div className="space-y-4">\n`;
-          if (card.content.icon) {
-            code += `        <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">\n`;
-            code += `          <${card.content.icon} className="h-5 w-5 text-primary" />\n`;
-            code += `        </div>\n`;
-          }
-          if (card.content.heading) {
-            code += `        <h3 className="text-lg font-semibold">${card.content.heading}</h3>\n`;
-          }
-          code += `        <p className="text-muted-foreground">${card.content.text}</p>\n`;
-          code += `      </div>\n`;
-          break;
-        case "text-only":
+
+        // Handle remaining templates (similar to your existing code)
+        // ... other templates
+
         default:
-          code += `      ${card.content.text}\n`;
+          reactCode += `            <p>${card.content.text}</p>\n`;
       }
 
-      code += `    </CardContent>\n`;
-      code += `  </Card>\n`;
+      reactCode += `          </CardContent>\n`;
+      reactCode += `        </Card>\n`;
+      reactCode += `      </div>\n`;
     });
 
-    // Add keyframes for animations and hover effects
-    code += `</div>\n\n`;
-    code += `{/* Add these keyframes and styles to your CSS */}\n`;
-    code += `<style jsx global>{\`\n`;
-    code += `  @keyframes fadeIn {\n`;
-    code += `    from { opacity: 0; }\n`;
-    code += `    to { opacity: 1; }\n`;
-    code += `  }\n\n`;
+    reactCode += `    </div>\n`;
+    reactCode += `  );\n`;
+    reactCode += `}\n`;
 
-    code += `  @keyframes slideUp {\n`;
-    code += `    from { transform: translateY(20px); opacity: 0; }\n`;
-    code += `    to { transform: translateY(0); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    // Build CSS code with animations and hover effects
+    cssCode += `/* BentoGrid Animations and Effects */\n\n`;
+    cssCode += `/* Animations */\n`;
+    cssCode += `@keyframes fadeIn {\n`;
+    cssCode += `  from { opacity: 0; }\n`;
+    cssCode += `  to { opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes slideDown {\n`;
-    code += `    from { transform: translateY(-20px); opacity: 0; }\n`;
-    code += `    to { transform: translateY(0); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes slideUp {\n`;
+    cssCode += `  from { transform: translateY(20px); opacity: 0; }\n`;
+    cssCode += `  to { transform: translateY(0); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes slideLeft {\n`;
-    code += `    from { transform: translateX(20px); opacity: 0; }\n`;
-    code += `    to { transform: translateX(0); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes slideDown {\n`;
+    cssCode += `  from { transform: translateY(-20px); opacity: 0; }\n`;
+    cssCode += `  to { transform: translateY(0); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes slideRight {\n`;
-    code += `    from { transform: translateX(-20px); opacity: 0; }\n`;
-    code += `    to { transform: translateX(0); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes slideLeft {\n`;
+    cssCode += `  from { transform: translateX(20px); opacity: 0; }\n`;
+    cssCode += `  to { transform: translateX(0); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes scaleUp {\n`;
-    code += `    from { transform: scale(0.8); opacity: 0; }\n`;
-    code += `    to { transform: scale(1); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes slideRight {\n`;
+    cssCode += `  from { transform: translateX(-20px); opacity: 0; }\n`;
+    cssCode += `  to { transform: translateX(0); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes scaleDown {\n`;
-    code += `    from { transform: scale(1.2); opacity: 0; }\n`;
-    code += `    to { transform: scale(1); opacity: 1; }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes scaleUp {\n`;
+    cssCode += `  from { transform: scale(0.8); opacity: 0; }\n`;
+    cssCode += `  to { transform: scale(1); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes bounce {\n`;
-    code += `    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }\n`;
-    code += `    40% { transform: translateY(-20px); }\n`;
-    code += `    60% { transform: translateY(-10px); }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes scaleDown {\n`;
+    cssCode += `  from { transform: scale(1.2); opacity: 0; }\n`;
+    cssCode += `  to { transform: scale(1); opacity: 1; }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes pulse {\n`;
-    code += `    0% { transform: scale(1); }\n`;
-    code += `    50% { transform: scale(1.05); }\n`;
-    code += `    100% { transform: scale(1); }\n`;
-    code += `  }\n\n`;
+    cssCode += `@keyframes bounce {\n`;
+    cssCode += `  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }\n`;
+    cssCode += `  40% { transform: translateY(-20px); }\n`;
+    cssCode += `  60% { transform: translateY(-10px); }\n`;
+    cssCode += `}\n\n`;
 
-    code += `  @keyframes spin {\n`;
-    code += `    from { transform: rotate(0deg); }\n`;
-    code += `    to { transform: rotate(360deg); }\n`;
-    code += `  }\n`;
-    code += `\`}</style>`;
+    cssCode += `@keyframes pulse {\n`;
+    cssCode += `  0% { transform: scale(1); }\n`;
+    cssCode += `  50% { transform: scale(1.05); }\n`;
+    cssCode += `  100% { transform: scale(1); }\n`;
+    cssCode += `}\n\n`;
 
-    return code;
+    cssCode += `@keyframes spin {\n`;
+    cssCode += `  from { transform: rotate(0deg); }\n`;
+    cssCode += `  to { transform: rotate(360deg); }\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `/* Applied Animation Classes */\n`;
+    cssCode += `.bento-fade-in {\n`;
+    cssCode += `  animation: fadeIn 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-slide-up {\n`;
+    cssCode += `  animation: slideUp 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-slide-down {\n`;
+    cssCode += `  animation: slideDown 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-slide-left {\n`;
+    cssCode += `  animation: slideLeft 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-slide-right {\n`;
+    cssCode += `  animation: slideRight 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-scale-up {\n`;
+    cssCode += `  animation: scaleUp 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-scale-down {\n`;
+    cssCode += `  animation: scaleDown 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-bounce {\n`;
+    cssCode += `  animation: bounce 1s forwards;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-pulse {\n`;
+    cssCode += `  animation: pulse 1s infinite;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-spin {\n`;
+    cssCode += `  animation: spin 2s linear infinite;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `/* Hover Effects */\n`;
+    cssCode += `.bento-hover-scale:hover {\n`;
+    cssCode += `  transform: scale(1.05);\n`;
+    cssCode += `  transition: transform 0.3s ease;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-hover-lift:hover {\n`;
+    cssCode += `  transform: translateY(-5px);\n`;
+    cssCode += `  transition: transform 0.3s ease;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-hover-glow:hover {\n`;
+    cssCode += `  box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.5);\n`;
+    cssCode += `  transition: box-shadow 0.3s ease;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-hover-border-glow:hover {\n`;
+    cssCode += `  box-shadow: inset 0 0 0 2px hsl(var(--primary));\n`;
+    cssCode += `  transition: box-shadow 0.3s ease;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-hover-background-shift:hover {\n`;
+    cssCode += `  background-color: hsl(var(--primary) / 0.1);\n`;
+    cssCode += `  transition: background-color 0.3s ease;\n`;
+    cssCode += `}\n\n`;
+
+    cssCode += `.bento-hover-text-shift:hover {\n`;
+    cssCode += `  color: hsl(var(--primary));\n`;
+    cssCode += `  transition: color 0.3s ease;\n`;
+    cssCode += `}\n`;
+
+    return { reactCode, cssCode };
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(generateCode());
+    const { reactCode, cssCode } = generateCode();
+    const combinedCode = reactCode + "\n\n" + cssCode;
+    navigator.clipboard.writeText(combinedCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

@@ -29,7 +29,7 @@ export function CardEditor() {
       <CardBasicInfo card={selectedCard} />
 
       {/* Screen Size Controls */}
-      <div className="flex items-center justify-between mb-2">
+      {/* <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium">Preview Screen Size</h3>
         <div className="flex items-center gap-2">
           <Button
@@ -60,7 +60,7 @@ export function CardEditor() {
             <Monitor className="h-4 w-4" />
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <CardSizeControls card={selectedCard} />
 
