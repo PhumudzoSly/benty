@@ -1,11 +1,11 @@
-import { Github, Twitter } from "lucide-react";
+import { Check, Github, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 
 export function HeroSection() {
   return (
-    <div className="bg-gradient-to-b from-primary/10 to-background pt-16 pb-12">
+    <section className="bg-gradient-to-b from-primary/10 via-background to-background pt-16 pb-12">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-6">
           <div className="bg-primary/10 p-3 rounded-full">
@@ -31,12 +31,26 @@ export function HeroSection() {
             </div>
           </div>
           <Badge variant="outline">Beta</Badge>
-          <h1 className="text-5xl font-bold tracking-tight">Benty</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl">
-            Create beautiful responsive bento grid layouts with customizable
-            styles and components. Perfect for dashboards and marketing pages.
-          </p>
-          <div className="flex gap-4">
+          <div className="space-y-3">
+            <h1 className="text-5xl font-bold tracking-tight">Benty</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl">
+              Create beautiful responsive bento grid layouts with customizable
+              styles and components. Perfect for dashboards and marketing pages.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+            {[
+              "Responsive by default",
+              "Live preview",
+              "Copy-ready code",
+            ].map((item) => (
+              <span key={item} className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary" />
+                {item}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" asChild>
               <a href="#generator">Get Started</a>
             </Button>
@@ -59,6 +73,6 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
