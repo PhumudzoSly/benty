@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ModeToggle } from "../mode-switcher";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useScreenSize } from "@/hooks/use-screen-size";
 
@@ -30,16 +30,9 @@ export function BentoGridPreview({ className }: { className?: string }) {
     toggleFullscreenPreview,
   } = useBentoGrid();
   const { screenSize, setScreenSize } = useScreenSize();
-  // Force re-render when grid config changes
-  const [, forceUpdate] = useState({});
-
-  // Re-render when gridConfig changes to ensure preview updates
-  useEffect(() => {
-    forceUpdate({});
-  }, [gridConfig]);
-
-  // Sort cards by order
-  const sortedCards = [...gridConfig.cards].sort((a, b) => a.order - b.order);
+  const sortedCards = useMemo(() => {
+    return [...gridConfig.cards].sort((a, b) => a.order - b.order);
+  }, [gridConfig.cards]);
 
   const renderGrid = (isDialog: boolean = false) => {
     const containerClasses = cn(
@@ -82,10 +75,6 @@ export function BentoGridPreview({ className }: { className?: string }) {
             // Get the current span based on preview size for display purposes
             const currentColSpan = Number(card.colSpan[screenSize] || 1);
             const currentRowSpan = Number(card.rowSpan[screenSize] || 1);
-
-            console.log(
-              `Rendering card ${card.id} with col: ${currentColSpan}, row: ${currentRowSpan}`
-            );
 
             // For the preview, dynamically generate grid classes
             const gridItemStyle: React.CSSProperties = {

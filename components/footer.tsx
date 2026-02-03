@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="border-t py-6">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground p-1 rounded">
               <svg
@@ -27,14 +27,22 @@ export function Footer() {
             </div>
             <span className="font-semibold">Benty</span>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground">
             Created by{" "}
-            <Link href="https://github.com/PhumudzoSly" target="_blank" className="hover:text-primary">
+            <Link
+              href="https://github.com/PhumudzoSly"
+              target="_blank"
+              className="hover:text-primary"
+            >
               PhumudzoSly
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="https://x.com/amazing_sly" target="_blank" className="text-muted-foreground hover:text-primary">
+            <Link
+              href="https://x.com/amazing_sly"
+              target="_blank"
+              className="text-muted-foreground hover:text-primary"
+            >
               <Twitter className="h-5 w-5" />
               <span className="sr-only">Twitter</span>
             </Link>
